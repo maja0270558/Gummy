@@ -7,7 +7,7 @@ let package = Package(
     name: "GummyFeature",
     platforms: [.iOS(.v17)],
     products: [
-        .library(name: "GummyFeature", targets: ["GummyFeature"]),
+        .library(name: "AppFeature", targets: ["AppFeature"]),
 
         .library(name: "PlaybackService", targets: ["PlaybackService"]),
     ],
@@ -20,7 +20,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "GummyFeature",
+            name: "AppFeature",
             dependencies: ["PlaybackService", .tca]
         ),
 
@@ -30,8 +30,8 @@ let package = Package(
         ),
 
         .testTarget(
-            name: "GummyFeatureTests",
-            dependencies: ["GummyFeature", .tca]
+            name: "AppFeatureTests",
+            dependencies: ["AppFeature", .tca]
         ),
     ]
 )

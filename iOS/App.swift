@@ -4,28 +4,22 @@
 //
 //  Created by DjangoLin on 2024/7/31.
 //
-
+import AppFeature
 import ComposableArchitecture
 import Foundation
 import SwiftUI
 
 final class AppDelegate: NSObject, UIApplicationDelegate {
+    let store: StoreOf<AppReducer> = .init(initialState: AppReducer.State()) {
+        AppReducer()
+    }
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        store.send(.appDelegate(.didFinishLaunching))
         return true
     }
-
-    func application(
-        _ application: UIApplication,
-        didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
-    ) {}
-
-    func application(
-        _ application: UIApplication,
-        didFailToRegisterForRemoteNotificationsWithError error: Error
-    ) {}
 }
 
 @main
@@ -35,12 +29,10 @@ struct GummyiOSApp: App {
 
     var body: some Scene {
         WindowGroup {
-            EmptyView()
-                .background {
-                    Color.red
-                }
+            AppView(store: appDelegate.store)
         }
         .onChange(of: scenePhase) { _, _ in
+            appDelegate.store.send(.didChangeScenePhase(scenePhase))
         }
     }
 }
