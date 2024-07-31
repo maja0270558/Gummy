@@ -8,7 +8,7 @@ import ComposableArchitecture
 import SwiftUI
 
 @Reducer
-public struct AppReducer {
+public struct AppReducer: Reducer {
     public init() {}
 
     @ObservableState

@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "BE250DED-0A07-4877-BECB-1255461EB75E",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:GummyFeature",
+        "identifier" : "AppFeatureTests",
+        "name" : "AppFeatureTests"
+      }
+    }
+  ],
+  "version" : 1
+}
