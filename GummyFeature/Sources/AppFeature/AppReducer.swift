@@ -6,9 +6,12 @@
 //
 import ComposableArchitecture
 import SwiftUI
+import PlaybackService
 
 @Reducer
 public struct AppReducer: Reducer {
+    @Dependency(\.playbackClient) var playbackClient
+    
     public init() {}
 
     @ObservableState
