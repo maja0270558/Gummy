@@ -13,6 +13,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     let store: StoreOf<AppReducer> = .init(initialState: AppReducer.State()) {
         AppReducer()
     }
+
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
@@ -31,7 +32,7 @@ struct GummyiOSApp: App {
         WindowGroup {
             AppView(store: appDelegate.store)
         }
-        .onChange(of: scenePhase) { _, _ in
+        .onChange(of: scenePhase) { _, scenePhase in
             appDelegate.store.send(.didChangeScenePhase(scenePhase))
         }
     }

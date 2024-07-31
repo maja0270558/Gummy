@@ -41,7 +41,7 @@ public struct AppView: View {
     public init(store: StoreOf<AppReducer>) {
         self.store = store
     }
-    
+
     public var body: some View {
         EmptyView()
             .background {
