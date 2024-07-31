@@ -19,21 +19,3 @@ struct AppFeature {
 
     func core(into state: inout State, action: Action) -> Effect<Action> {}
 }
-
-struct AppView: View {
-    let store: StoreOf<AppFeature>
-    var body: some View {
-        EmptyView()
-    }
-}
-
-@main
-struct GummyAppView: App {
-    var body: some Scene {
-        WindowGroup {
-            AppView(store: Store(initialState: AppFeature.State()) {
-                AppFeature()
-            })
-        }
-    }
-}
