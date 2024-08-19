@@ -5,43 +5,63 @@
 //  Created by DjangoLin on 2024/8/19.
 //
 import ComposableArchitecture
-import SwiftUI
 import PlaybackService
+import SwiftUI
 
 @Reducer
 public struct OnboardingReducer {
     @Dependency(\.playerClient) var player
+    public init() {}
 
-    public init() { }
-    
-    public enum OnboardingStep: Int, CaseIterable, Equatable {
-        case step1_Welcome
-        case step2_Auth
-        case step3_Connect
-
-        mutating func next() {
-            self = Self(rawValue: self.rawValue + 1) ?? Self.allCases.last!
-        }
-
-        mutating func previous() {
-            self = Self(rawValue: self.rawValue - 1) ?? Self.allCases.first!
-        }
-    }
-
+    // - MARK: State
     @ObservableState
     public struct State: Equatable {
+        public enum OnboardingStep: Int, CaseIterable, Equatable {
+            case step1_Welcome
+            case step2_Auth
+            case step3_Allow
+
+            mutating func next() {
+                self = Self(rawValue: self.rawValue + 1) ?? Self.allCases.last!
+            }
+
+            mutating func previous() {
+                self = Self(rawValue: self.rawValue - 1) ?? Self.allCases.first!
+            }
+
+            var canGoPreviousOne: Bool {
+                switch self {
+                case .step1_Welcome: false
+                case .step2_Auth: true
+                case .step3_Allow: false
+                }
+            }
+            
+            var canGoNextOne: Bool {
+                switch self {
+                case .step1_Welcome: true
+                case .step2_Auth: false
+                case .step3_Allow: true
+                }
+            }
+        }
+
         public var step: OnboardingStep
-        public init(step: OnboardingStep) {
+        public init(step: OnboardingStep = .step1_Welcome) {
             self.step = step
         }
     }
 
+    // - MARK: Action
     public enum Action: Equatable {
         case userClickNextStepButton
         case userClickPreStepButton
-        case userChooseAuth(Bool)
+        case userClickSkipButton
+        case userClickAuth
+        case receivedPlayerStatus(MusicPlayerClient.MusicPlayerAuthState)
     }
 
+    // - MARK: Reducer
     public var body: some Reducer<State, Action> {
         Reduce(self.core)
     }
@@ -49,21 +69,20 @@ public struct OnboardingReducer {
     public func core(into state: inout State, action: Action) -> Effect<Action> {
         switch action {
         case .userClickNextStepButton:
-            if state.step == .step2_Auth {
-                return .run { send in
-                   let status = await player.prepare()
-                    let success = status != .authorized
-                    await send(.userChooseAuth(success))
-                }
-            }
             state.step.next()
             return .none
-            
         case .userClickPreStepButton:
             state.step.previous()
             return .none
-        case .userChooseAuth(_):
-            
+        case .userClickAuth:
+            return .run { send in
+                let status = await player.prepare()
+                await send(.receivedPlayerStatus(status))
+            }
+        case .userClickSkipButton:
+            return .none
+        case let .receivedPlayerStatus(status):
+            state.step = .step3_Allow
             return .none
         }
     }
@@ -77,11 +96,12 @@ public struct OnboardingView: View {
     }
 
     public var body: some View {
+        
         VStack {
             HStack {
                 Spacer()
                 Button(action: {
-                    self.store.send(.userClickPreStepButton)
+                    self.store.send(.userClickSkipButton)
                 }, label: {
                     Text("Skip")
                 })
@@ -89,17 +109,22 @@ public struct OnboardingView: View {
             .padding(.horizontal)
             OnboardingStepView(store: self.store)
             HStack {
-                Button(action: {
-                    self.store.send(.userClickPreStepButton)
-                }, label: {
-                    Text("Pre")
-                })
-
-                Button(action: {
-                    self.store.send(.userClickNextStepButton)
-                }, label: {
-                    Text("Next")
-                })
+                
+                if store.step.canGoPreviousOne {
+                    Button(action: {
+                        self.store.send(.userClickPreStepButton)
+                    }, label: {
+                        Text("Pre")
+                    })
+                }
+                
+                if store.step.canGoNextOne {
+                    Button(action: {
+                        self.store.send(.userClickNextStepButton)
+                    }, label: {
+                        Text("Next")
+                    })
+                }
             }
         }
     }
@@ -108,7 +133,7 @@ public struct OnboardingView: View {
 #Preview {
     OnboardingView(store:
         Store(
-            initialState: OnboardingReducer.State(step: .step1_Welcome),
+            initialState: OnboardingReducer.State(),
             reducer: { OnboardingReducer() },
             withDependencies: {
                 $0.playerClient = .testValue

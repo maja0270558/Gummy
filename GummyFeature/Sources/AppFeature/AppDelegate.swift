@@ -10,7 +10,9 @@ import Foundation
 
 @Reducer
 public struct AppDelegateReducer {
-    public struct State: Equatable {}
+    public struct State: Equatable {
+        public init() {}
+    }
     public enum Action: Equatable {
         case didFinishLaunching
     }

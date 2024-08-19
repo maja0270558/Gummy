@@ -16,7 +16,16 @@ struct OnboardingStepView: View {
         case .step1_Welcome:
             Text("Welcome")
         case .step2_Auth:
-            Text("Let get things done one by one\nTo use Gummy we need your permition with Apple Music")
+            VStack {
+                
+                Text("Let get things done one by one\nTo use Gummy we need your permition with Apple Music")
+                
+                Button("Auth") {
+                    store.send(.userClickAuth)
+                }
+            }
+        case .step3_Allow:
+            Text("Now we moving on")
         default:
             Text("")
         }
@@ -26,7 +35,7 @@ struct OnboardingStepView: View {
 #Preview {
     OnboardingStepView(
         store: Store(
-            initialState: OnboardingReducer.State(step: .step1_Welcome),
+            initialState: OnboardingReducer.State(),
             reducer: {  OnboardingReducer() }
         )
     )

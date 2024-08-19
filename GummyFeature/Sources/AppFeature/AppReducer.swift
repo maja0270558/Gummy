@@ -25,8 +25,11 @@ public struct AppReducer: Reducer {
     public struct State: Equatable {
         @Presents var destination: Destination.State?
         var appDelegate: AppDelegateReducer.State
-        
-        public init(destination: Destination.State? = nil, appDelegate: AppDelegateReducer.State) {
+
+        public init(
+            destination: Destination.State? = nil,
+            appDelegate: AppDelegateReducer.State = .init()
+        ) {
             self.destination = destination
             self.appDelegate = appDelegate
         }
@@ -43,22 +46,24 @@ public struct AppReducer: Reducer {
     public var body: some ReducerOf<Self> {
         // AppDelegate
         Scope(state: \.appDelegate, action: \.appDelegate) {
-          AppDelegateReducer()
+            AppDelegateReducer()
         }
-        
+
         // Core with destination
         Reduce(core)
-        .ifLet(\.$destination, action: \.destination) {
-            Destination.body
-        }
+            .ifLet(\.$destination, action: \.destination) {
+                Destination.body
+            }
     }
 
     public func core(into state: inout State, action: Action) -> Effect<Action> {
         switch action {
-        case .didChangeScenePhase:
+        case .appDelegate(.didFinishLaunching):
             state.destination = .onboarding(OnboardingReducer.State(step: .step1_Welcome))
             return .none
         case .appDelegate:
+            return .none
+        case .didChangeScenePhase:
             return .none
         case .destination:
             return .none
