@@ -12,6 +12,8 @@ import PlaybackService
 public struct OnboardingReducer {
     @Dependency(\.playerClient) var player
 
+    public init() { }
+    
     public enum OnboardingStep: Int, CaseIterable, Equatable {
         case step1_Welcome
         case step2_Auth
@@ -28,7 +30,10 @@ public struct OnboardingReducer {
 
     @ObservableState
     public struct State: Equatable {
-        var step: OnboardingStep
+        public var step: OnboardingStep
+        public init(step: OnboardingStep) {
+            self.step = step
+        }
     }
 
     public enum Action: Equatable {
