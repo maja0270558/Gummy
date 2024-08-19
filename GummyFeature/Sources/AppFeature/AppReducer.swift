@@ -10,7 +10,12 @@ import PlaybackService
 
 @Reducer
 public struct AppReducer: Reducer {
-    @Dependency(\.playbackClient) var playbackClient
+    @Dependency(\.playerClient) var player
+    
+    public enum Destination {
+        case onboarding
+        case main
+    }
     
     public init() {}
 
@@ -47,8 +52,5 @@ public struct AppView: View {
 
     public var body: some View {
         EmptyView()
-            .background {
-                Color.green
-            }
     }
 }
