@@ -12,6 +12,7 @@ import SwiftUI
 @Reducer
 public struct AppReducer: Reducer {
     @Dependency(\.playerClient) var player
+    public init() {}
 
     @Reducer(state: .equatable, action: .equatable)
     public enum Destination {
@@ -19,26 +20,37 @@ public struct AppReducer: Reducer {
         case main
     }
 
-    public init() {}
-
+    // - MARK: State
     @ObservableState
     public struct State: Equatable {
         @Presents var destination: Destination.State?
-
-        public init() {}
+        var appDelegate: AppDelegateReducer.State
+        
+        public init(destination: Destination.State? = nil, appDelegate: AppDelegateReducer.State) {
+            self.destination = destination
+            self.appDelegate = appDelegate
+        }
     }
 
+    // - MARK: Action
     public enum Action: Equatable {
         case destination(PresentationAction<Destination.Action>)
         case appDelegate(AppDelegateReducer.Action)
         case didChangeScenePhase(ScenePhase)
     }
 
+    // - MARK: Reducer
     public var body: some ReducerOf<Self> {
+        // AppDelegate
+        Scope(state: \.appDelegate, action: \.appDelegate) {
+          AppDelegateReducer()
+        }
+        
+        // Core with destination
         Reduce(core)
-            .ifLet(\.$destination, action: \.destination) {
-                Destination.body
-            }
+        .ifLet(\.$destination, action: \.destination) {
+            Destination.body
+        }
     }
 
     public func core(into state: inout State, action: Action) -> Effect<Action> {
