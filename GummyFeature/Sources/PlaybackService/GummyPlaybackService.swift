@@ -26,7 +26,14 @@ public struct MusicPlayerClient: Sendable, Equatable {
         case seekingBackward
     }
     
-    public enum MusicPlayerAuthState: Equatable {
+    public struct Subscription : Equatable, Hashable, Sendable {
+        public let canPlayCatalogContent: Bool
+        public let canBecomeSubscriber: Bool
+        public let hasCloudLibraryEnabled: Bool
+    }
+
+    
+    public enum MusicPlayerAuthState: Equatable, Sendable {
         case authorized
         case restricted
         case notDetermined
@@ -48,7 +55,8 @@ public struct MusicPlayerClient: Sendable, Equatable {
         }
     }
     
-    public var prepare: @Sendable () async -> MusicPlayerAuthState
+    public var authState: @Sendable () async -> MusicPlayerAuthState
+    public var subscriptionState: @Sendable () async throws -> Subscription
     public var state: @Sendable () async -> MusicPlayerClient.State
     public var isPreparedToPlay: @Sendable () async -> Bool
     public var play: @Sendable () async throws -> Void
@@ -65,27 +73,63 @@ public struct MusicPlayerClient: Sendable, Equatable {
 
 
 public extension MusicPlayerClient {
-    static let apple: MusicPlayerClient = .init(
-        prepare: {
-            let status = await MusicAuthorization.request()
-            return .init(status: status)
-        },
-        state: { .playing },
-        isPreparedToPlay: { false },
-        play: { try await SystemMusicPlayer.shared.play() },
-        pause: {  SystemMusicPlayer.shared.pause() },
-        stop: { SystemMusicPlayer.shared.stop() },
-        playbackTime: { 0 },
-        beginSeekingForward: {},
-        beginSeekingBackward: {},
-        endSeeking: {},
-        skipToNextEntry: {},
-        restartCurrentEntry: {},
-        skipToPreviousEntry: {}
-    )
+    static var apple: MusicPlayerClient = {
+        .init(
+            authState: {
+                let authStatus = await MusicAuthorization.request()
+                return .init(status: authStatus)
+            },
+            subscriptionState: {
+                let subStatus = try await MusicSubscription.current
+                let customSub = Subscription(canPlayCatalogContent: subStatus.canPlayCatalogContent,
+                                             canBecomeSubscriber: subStatus.canBecomeSubscriber,
+                                             hasCloudLibraryEnabled: subStatus.hasCloudLibraryEnabled)
+                return customSub
+            },
+            state: { .playing },
+            isPreparedToPlay: { false },
+            play: { try await SystemMusicPlayer.shared.play() },
+            pause: {  SystemMusicPlayer.shared.pause() },
+            stop: { SystemMusicPlayer.shared.stop() },
+            playbackTime: { 0 },
+            beginSeekingForward: {},
+            beginSeekingBackward: {},
+            endSeeking: {},
+            skipToNextEntry: {},
+            restartCurrentEntry: {},
+            skipToPreviousEntry: {}
+        )
+    }()
 }
 
+let musicPlayer = SystemMusicPlayer.shared
 
+public func testPlay() async {
+    await searchMusicAndPlay()
+}
+
+func searchMusicAndPlay() async {
+    var request = MusicCatalogSearchRequest(term: "Song", types: [Song.self])
+    do {
+        let response = try await request.response()
+        if let song = response.songs.first {
+            playSong(song)
+        }
+    } catch {
+        print("搜尋失敗: \(error)")
+    }
+}
+
+func playSong(_ song: Song) {
+    Task {
+        do {
+            try await musicPlayer.queue.insert(song, position: .afterCurrentEntry)
+            try await musicPlayer.play()
+        } catch {
+            print("播放失敗: \(error)")
+        }
+    }
+}
 
 public extension DependencyValues {
     var playerClient: MusicPlayerClient {

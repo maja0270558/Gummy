@@ -20,6 +20,7 @@ public struct OnboardingReducer {
             case step1_Welcome
             case step2_Auth
             case step3_Allow
+            case step4_Subscription
 
             mutating func next() {
                 self = Self(rawValue: self.rawValue + 1) ?? Self.allCases.last!
@@ -34,6 +35,7 @@ public struct OnboardingReducer {
                 case .step1_Welcome: false
                 case .step2_Auth: true
                 case .step3_Allow: false
+                case .step4_Subscription: false
                 }
             }
             
@@ -42,11 +44,14 @@ public struct OnboardingReducer {
                 case .step1_Welcome: true
                 case .step2_Auth: false
                 case .step3_Allow: true
+                case .step4_Subscription: false
                 }
             }
         }
 
         public var step: OnboardingStep
+        public var subscriptionState: MusicPlayerClient.Subscription?
+        
         public init(step: OnboardingStep = .step1_Welcome) {
             self.step = step
         }
@@ -59,6 +64,8 @@ public struct OnboardingReducer {
         case userClickSkipButton
         case userClickAuth
         case receivedPlayerStatus(MusicPlayerClient.MusicPlayerAuthState)
+        case checkSubsciption
+        case receivedSubsciption(MusicPlayerClient.Subscription?)
     }
 
     // - MARK: Reducer
@@ -76,15 +83,28 @@ public struct OnboardingReducer {
             return .none
         case .userClickAuth:
             return .run { send in
-                let status = await player.prepare()
+                let status = await player.authState()
                 await send(.receivedPlayerStatus(status))
             }
         case .userClickSkipButton:
             return .none
         case let .receivedPlayerStatus(status):
-            state.step = .step3_Allow
+            if status == .authorized {
+                state.step = .step3_Allow
+            }
+            return .none
+        case .checkSubsciption:
+            return .run { send in
+                let sub = try? await player.subscriptionState()
+                await send(.receivedSubsciption(sub))
+            }
+        case let .receivedSubsciption(sub):
+            state.subscriptionState = sub
+            state.step = .step4_Subscription
             return .none
         }
+        
+        
     }
 }
 
@@ -108,24 +128,6 @@ public struct OnboardingView: View {
             }
             .padding(.horizontal)
             OnboardingStepView(store: self.store)
-            HStack {
-                
-                if store.step.canGoPreviousOne {
-                    Button(action: {
-                        self.store.send(.userClickPreStepButton)
-                    }, label: {
-                        Text("Pre")
-                    })
-                }
-                
-                if store.step.canGoNextOne {
-                    Button(action: {
-                        self.store.send(.userClickNextStepButton)
-                    }, label: {
-                        Text("Next")
-                    })
-                }
-            }
         }
     }
 }
