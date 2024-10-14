@@ -35,16 +35,7 @@ struct OnboardingStepView: View {
 
                 } else {
                     if store.subscriptionState?.canBecomeSubscriber ?? false {
-                        VStack {
-                            Button(action: {
-                                
-                            }, label: {
-                                /*@START_MENU_TOKEN@*/Text("Button")/*@END_MENU_TOKEN@*/
-                            })
-                            .musicSubscriptionOffer(isPresented: <#T##Binding<Bool>#>)
-                            
-                        }
-                        Text("We detected you don't hanv sub")
+                        
                     }
                 }
                

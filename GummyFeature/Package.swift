@@ -12,8 +12,8 @@ var package = Package(
         .library(name: "OnboardingFeature", targets: ["OnboardingFeature"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.11.2"),
-        .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.3.5"),
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.15.0"),
+        .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.4.1"),
         .package(url: "https://github.com/spotify/ios-sdk", from: "2.1.6"),
     ],
     targets: [
