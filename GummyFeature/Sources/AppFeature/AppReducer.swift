@@ -39,7 +39,6 @@ public struct AppReducer: Reducer {
     public enum Action: Equatable {
         case destination(PresentationAction<Destination.Action>)
         case appDelegate(AppDelegateReducer.Action)
-        case didChangeScenePhase(ScenePhase)
     }
 
     // - MARK: Reducer
@@ -62,8 +61,6 @@ public struct AppReducer: Reducer {
             state.destination = .onboarding(OnboardingReducer.State(step: .step1_Welcome))
             return .none
         case .appDelegate:
-            return .none
-        case .didChangeScenePhase:
             return .none
         case .destination:
             return .none

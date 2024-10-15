@@ -33,7 +33,7 @@ struct GummyiOSApp: App {
             AppView(store: appDelegate.store)
         }
         .onChange(of: scenePhase) { _, scenePhase in
-            appDelegate.store.send(.didChangeScenePhase(scenePhase))
+            appDelegate.store.send(.appDelegate(.didChangeScenePhase(scenePhase)))
         }
     }
 }

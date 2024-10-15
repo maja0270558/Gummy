@@ -7,6 +7,7 @@
 
 import ComposableArchitecture
 import Foundation
+import SwiftUI
 
 @Reducer
 public struct AppDelegateReducer {
@@ -15,6 +16,7 @@ public struct AppDelegateReducer {
     }
     public enum Action: Equatable {
         case didFinishLaunching
+        case didChangeScenePhase(ScenePhase)
     }
 
     public var body: some Reducer<State, Action> {
@@ -24,6 +26,8 @@ public struct AppDelegateReducer {
     public func core(into state: inout State, action: Action) -> Effect<Action> {
         switch action {
         case .didFinishLaunching:
+            return .none
+        case .didChangeScenePhase:
             return .none
         }
     }
